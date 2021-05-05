@@ -1,0 +1,17 @@
+[default]
+bind_ip = 0.0.0.0
+bind_port = 8080
+i2c_device = /dev/i2c-1
+enable_sensor = bme280, ccs811
+export_metrics = Temperature,Humidity,Pressure,CO2,VOC
+
+[bme280]
+i2c_address = 0x76
+metrics_name_temp = Temperature
+metrics_name_humid = Humidity
+metrics_name_press = Pressure
+
+[ccs811]
+i2c_address = 0x5a
+metrics_name_co2 = CO2
+metrics_name_voc = VOC
