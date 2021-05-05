@@ -1,0 +1,12 @@
+[Unit]
+Description=sensor exporter for raspberrypi
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/sensor-exporter
+ExecStop=/bin/kill -INT ${MAINPID}
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+Version: 1.0.0
+Package: sensor-exporter
+Architecture: armhf
+Maintainer: Take2 <@SayYeah1121>
+Description: Exporter for prometheus
