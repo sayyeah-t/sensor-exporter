@@ -15,3 +15,4 @@ metrics_name_press = Pressure
 i2c_address = 0x5a
 metrics_name_co2 = CO2
 metrics_name_voc = VOC
+baseline = 196

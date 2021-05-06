@@ -21,13 +21,13 @@ var (
 	//env_data        = byte(0x05)
 	//ntc             = byte(0x06)
 	//thresholds      = byte(0x10)
-	//baseline        = byte(0x11)
-	hw_id = byte(0x20)
+	baseline        = byte(0x11)
+	hw_id           = byte(0x20)
 	//hw_version      = byte(0x21)
 	//fw_boot_version = byte(0x23)
 	//fw_app_version  = byte(0x24)
-	error_id  = byte(0xE0)
-	app_start = byte(0xF4)
+	error_id        = byte(0xE0)
+	app_start       = byte(0xF4)
 	//sw_reset        = byte(0xFF)
 
 	// Config values
@@ -36,11 +36,15 @@ var (
 )
 
 type CCS811 struct {
-	data map[string]float64
-	dev  *i2c.Device
+	data          map[string]float64
+	dev           *i2c.Device
+	baseline      uint16
+	baselineCount int
+	wakeupFlag    bool
 }
 
 func (c *CCS811) Init(address string) error {
+	// init vars
 	conf = config.GetConfig().Ccs811
 	log.Println("Open sensor CCS811")
 
@@ -54,6 +58,13 @@ func (c *CCS811) Init(address string) error {
 		return err
 	}
 	c.dev = dev
+
+	c.baselineCount = 0
+	c.baseline = uint16(conf.Baseline)
+	c.wakeupFlag = false
+	if c.baseline == 0 {
+		c.wakeupFlag = true
+	}
 
 	// validate ccs811
 	//// hardware id
@@ -102,6 +113,26 @@ func (c *CCS811) Init(address string) error {
 	}
 
 	return nil
+}
+
+func (c *CCS811) getBaseline() uint16 {
+	val_baseline := make([]byte, 2)
+	if err := c.dev.ReadReg(baseline, val_baseline); err != nil {
+		return 0
+	}
+	log.Printf("Check baseline: %d", uint16(val_baseline[0]) << 8 | uint16(val_baseline[1]))
+
+	return uint16(val_baseline[0]) << 8 | uint16(val_baseline[1])
+}
+
+func (c *CCS811) setBaseline() uint16 {
+    val_baseline := []byte{
+		byte((c.baseline >> 8) & 0xFF),
+		byte(c.baseline & 0xFF),
+	}
+	c.dev.WriteReg(baseline, val_baseline)
+
+	return c.getBaseline()
 }
 
 func (c *CCS811) checkError() error {
@@ -178,6 +209,15 @@ func (c *CCS811) GetMetricsDescriptions() map[string]string {
 }
 
 func (c *CCS811) Update() map[string]float64 {
+	c.baselineCount = c.baselineCount + 1
+	if c.baselineCount % 1200 == 0 {
+		c.baselineCount = 0
+		if c.wakeupFlag {
+			c.baseline = c.getBaseline()
+			c.wakeupFlag = false
+		}
+		c.setBaseline()
+	}
 	data_available := make([]byte, 1)
 	if err := c.dev.ReadReg(status, data_available); err != nil {
 		log.Println("device is not available")

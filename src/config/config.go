@@ -27,6 +27,7 @@ type Ccs811 struct {
 	Address        int
 	Co2MetricsName string
 	VocMetricsName string
+	Baseline       int
 }
 
 type Config struct {
@@ -62,6 +63,7 @@ func Init(configPath string) error {
 			Address:        cfg.Section("ccs811").Key("i2c_address").MustInt(0x5a),
 			Co2MetricsName: cfg.Section("ccs811").Key("metrics_name_co2").MustString("co2"),
 			VocMetricsName: cfg.Section("ccs811").Key("metrics_name_voc").MustString("voc"),
+			Baseline:       cfg.Section("ccs811").Key("baseline").MustInt(0),
 		},
 	}
 	return nil
