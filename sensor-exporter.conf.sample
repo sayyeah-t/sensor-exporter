@@ -1,8 +1,8 @@
 [default]
 bind_ip = 0.0.0.0
 bind_port = 8080
-enable_sensor = bme280, ccs811
-export_metrics = Temperature,Humidity,Pressure,eCO2,TVOC
+enable_sensor = bme280, ccs811, mhz19c
+export_metrics = Temperature,Humidity,Pressure,CO2,eCO2,TVOC
 
 [bme280]
 i2c_device = /dev/i2c-1
@@ -17,3 +17,9 @@ i2c_address = 0x5a
 metrics_name_eco2 = eCO2
 metrics_name_evoc = TVOC
 baseline = 196
+
+[mhz19c]
+serial_port = /dev/serial0
+serial_baudrate = 9600
+metrics_name_co2 = CO2
+self_calibration = true

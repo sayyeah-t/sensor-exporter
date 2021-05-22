@@ -31,10 +31,18 @@ type Ccs811 struct {
 	Baseline       int
 }
 
+type Mhz19c struct {
+	SerialPort      string
+	SerialBaudrate  int
+	Co2MetricsName  string
+	SelfCalibration bool
+}
+
 type Config struct {
 	Default Default
 	Bme280  Bme280
 	Ccs811  Ccs811
+	Mhz19c  Mhz19c
 }
 
 var (
@@ -66,6 +74,12 @@ func Init(configPath string) error {
 			Co2MetricsName: cfg.Section("ccs811").Key("metrics_name_eco2").MustString("eco2"),
 			VocMetricsName: cfg.Section("ccs811").Key("metrics_name_evoc").MustString("tvoc"),
 			Baseline:       cfg.Section("ccs811").Key("baseline").MustInt(0),
+		},
+		Mhz19c: Mhz19c{
+			SerialPort:      cfg.Section("mhz19c").Key("serial_port").MustString("/dev/serial0"),
+			SerialBaudrate:  cfg.Section("mhz19c").Key("serial_baudrate").MustInt(9600),
+			Co2MetricsName:  cfg.Section("mhz19c").Key("metrics_name_co2").MustString("co2"),
+			SelfCalibration: cfg.Section("mhz19c").Key("self_calibration").MustBool(true),
 		},
 	}
 	return nil

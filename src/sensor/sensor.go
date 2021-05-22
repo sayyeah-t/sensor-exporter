@@ -3,6 +3,7 @@ package sensor
 import (
 	"sensor-exporter/sensor/bme280"
 	"sensor-exporter/sensor/ccs811"
+	"sensor-exporter/sensor/mhz19c"
 )
 
 type Sensor interface {
@@ -27,6 +28,9 @@ func Init(enabledSensors []string) []Sensor {
 		}
 		if s == "ccs811" {
 			sensors = append(sensors, &ccs811.CCS811{})
+		}
+		if s == "mhz19c" {
+			sensors = append(sensors, &mhz19c.MHZ19C{})
 		}
 	}
 

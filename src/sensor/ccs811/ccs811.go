@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"sensor-exporter/config"
 	"time"
 
@@ -229,8 +230,8 @@ func (c *CCS811) Update() map[string]float64 {
 			log.Println("ccs811 read data error")
 			return c.data
 		}
-		c.data[conf.Co2MetricsName] = float64((int16(result_data[0]) << 8) | int16(result_data[1]))
-		c.data[conf.VocMetricsName] = float64((int16(result_data[2]) << 8) | int16(result_data[3]))
+		c.data[conf.Co2MetricsName] = math.Min(8192.0, math.Max(400.0, float64((int16(result_data[0])<<8)|int16(result_data[1]))))
+		c.data[conf.VocMetricsName] = math.Min(1187.0, math.Max(0.0, float64((int16(result_data[2])<<8)|int16(result_data[3]))))
 	}
 
 	return c.data
