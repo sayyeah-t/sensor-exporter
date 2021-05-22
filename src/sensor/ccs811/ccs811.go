@@ -21,13 +21,13 @@ var (
 	//env_data        = byte(0x05)
 	//ntc             = byte(0x06)
 	//thresholds      = byte(0x10)
-	baseline        = byte(0x11)
-	hw_id           = byte(0x20)
+	baseline = byte(0x11)
+	hw_id    = byte(0x20)
 	//hw_version      = byte(0x21)
 	//fw_boot_version = byte(0x23)
 	//fw_app_version  = byte(0x24)
-	error_id        = byte(0xE0)
-	app_start       = byte(0xF4)
+	error_id  = byte(0xE0)
+	app_start = byte(0xF4)
 	//sw_reset        = byte(0xFF)
 
 	// Config values
@@ -43,7 +43,7 @@ type CCS811 struct {
 	wakeupFlag    bool
 }
 
-func (c *CCS811) Init(address string) error {
+func (c *CCS811) Init() error {
 	// init vars
 	conf = config.GetConfig().Ccs811
 	log.Println("Open sensor CCS811")
@@ -53,7 +53,7 @@ func (c *CCS811) Init(address string) error {
 		conf.VocMetricsName: 0.0,
 	}
 
-	dev, err := i2c.Open(&i2c.Devfs{Dev: address}, conf.Address)
+	dev, err := i2c.Open(&i2c.Devfs{Dev: conf.I2cDevice}, conf.I2cAddress)
 	if err != nil {
 		return err
 	}
@@ -120,13 +120,13 @@ func (c *CCS811) getBaseline() uint16 {
 	if err := c.dev.ReadReg(baseline, val_baseline); err != nil {
 		return 0
 	}
-	log.Printf("Check baseline: %d", uint16(val_baseline[0]) << 8 | uint16(val_baseline[1]))
+	log.Printf("Check baseline: %d", uint16(val_baseline[0])<<8|uint16(val_baseline[1]))
 
-	return uint16(val_baseline[0]) << 8 | uint16(val_baseline[1])
+	return uint16(val_baseline[0])<<8 | uint16(val_baseline[1])
 }
 
 func (c *CCS811) setBaseline() uint16 {
-    val_baseline := []byte{
+	val_baseline := []byte{
 		byte((c.baseline >> 8) & 0xFF),
 		byte(c.baseline & 0xFF),
 	}
@@ -210,7 +210,7 @@ func (c *CCS811) GetMetricsDescriptions() map[string]string {
 
 func (c *CCS811) Update() map[string]float64 {
 	c.baselineCount = c.baselineCount + 1
-	if c.baselineCount % 1200 == 0 {
+	if c.baselineCount%1200 == 0 {
 		c.baselineCount = 0
 		if c.wakeupFlag {
 			c.baseline = c.getBaseline()

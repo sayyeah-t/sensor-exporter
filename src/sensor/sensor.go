@@ -6,7 +6,7 @@ import (
 )
 
 type Sensor interface {
-	Init(string) error
+	Init() error
 	GetSensorName() string
 	GetMetricsDescriptions() map[string]string
 	Update() map[string]float64

@@ -74,7 +74,7 @@ type BME280 struct {
 	dev  *i2c.Device
 }
 
-func (b *BME280) Init(address string) error {
+func (b *BME280) Init() error {
 	conf = config.GetConfig().Bme280
 	log.Println("Open sensor BME280")
 
@@ -84,7 +84,7 @@ func (b *BME280) Init(address string) error {
 		conf.PressureMetricsName:    0.0,
 	}
 
-	dev, err := i2c.Open(&i2c.Devfs{Dev: address}, conf.Address)
+	dev, err := i2c.Open(&i2c.Devfs{Dev: conf.I2cDevice}, conf.I2cAddress)
 	if err != nil {
 		return err
 	}
