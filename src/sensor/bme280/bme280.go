@@ -3,6 +3,7 @@ package bme280
 import (
 	"fmt"
 	"log"
+	"math"
 	"sensor-exporter/config"
 
 	"golang.org/x/exp/io/i2c"
@@ -74,7 +75,7 @@ type BME280 struct {
 	dev  *i2c.Device
 }
 
-func (b *BME280) Init(address string) error {
+func (b *BME280) Init() error {
 	conf = config.GetConfig().Bme280
 	log.Println("Open sensor BME280")
 
@@ -84,7 +85,7 @@ func (b *BME280) Init(address string) error {
 		conf.PressureMetricsName:    0.0,
 	}
 
-	dev, err := i2c.Open(&i2c.Devfs{Dev: address}, conf.Address)
+	dev, err := i2c.Open(&i2c.Devfs{Dev: conf.I2cDevice}, conf.I2cAddress)
 	if err != nil {
 		return err
 	}
@@ -163,13 +164,8 @@ func (b *BME280) calibrateTemp(rawValue int64) float64 {
 	var2 = var2 * var2 * float64(calib_temp3)
 	t_fine = int(var1 + var2)
 	temp := (var1 + var2) / 5120.0
-	if temp < -40 {
-		temp = -40
-	}
-	if temp > 85 {
-		temp = 85
-	}
-	return temp
+
+	return math.Min(85.0, math.Max(-40.0, temp))
 }
 
 func (b *BME280) calibrateHumid(rawValue int64) float64 {
@@ -181,14 +177,8 @@ func (b *BME280) calibrateHumid(rawValue int64) float64 {
 	var6 := 1.0 + float64(calib_humid6)/67108864.0*var1*var5
 	var6 = var3 * var4 * (var5 * var6)
 	humid := var6 * (1.0 - float64(calib_humid1)*var6/524288.0)
-	if humid < 0.0 {
-		humid = 0.0
-	}
-	if humid > 100.0 {
-		humid = 100.0
-	}
 
-	return humid
+	return math.Min(100.0, math.Max(0.0, humid))
 }
 
 func (b *BME280) calibratePress(rawValue int64) float64 {
@@ -206,15 +196,9 @@ func (b *BME280) calibratePress(rawValue int64) float64 {
 		var1 = float64(calib_press9) * pressure * pressure / 2147483648.0
 		var2 = pressure * float64(calib_press8) / 32768.0
 		pressure = pressure + (var1+var2+float64(calib_press7))/16.0
-		if pressure < 30000.0 {
-			pressure = 30000.0
-		}
-		if pressure > 110000.0 {
-			pressure = 110000.0
-		}
 	}
 
-	return pressure
+	return math.Min(110000.0, math.Max(30000.0, pressure))
 }
 
 func (b *BME280) Update() map[string]float64 {

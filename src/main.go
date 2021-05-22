@@ -75,7 +75,7 @@ func main() {
 	sensors = sensor.Init(conf.EnabledSensors)
 	tmpHeaderData := make([]string, len(sensors))
 	for i, s := range sensors {
-		initerr := s.Init(conf.I2cDevice)
+		initerr := s.Init()
 		if initerr != nil {
 			log.Printf("sensor init error: %v\n", initerr)
 			os.Exit(1)

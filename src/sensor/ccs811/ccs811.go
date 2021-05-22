@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"sensor-exporter/config"
 	"time"
 
@@ -21,13 +22,13 @@ var (
 	//env_data        = byte(0x05)
 	//ntc             = byte(0x06)
 	//thresholds      = byte(0x10)
-	baseline        = byte(0x11)
-	hw_id           = byte(0x20)
+	baseline = byte(0x11)
+	hw_id    = byte(0x20)
 	//hw_version      = byte(0x21)
 	//fw_boot_version = byte(0x23)
 	//fw_app_version  = byte(0x24)
-	error_id        = byte(0xE0)
-	app_start       = byte(0xF4)
+	error_id  = byte(0xE0)
+	app_start = byte(0xF4)
 	//sw_reset        = byte(0xFF)
 
 	// Config values
@@ -43,7 +44,7 @@ type CCS811 struct {
 	wakeupFlag    bool
 }
 
-func (c *CCS811) Init(address string) error {
+func (c *CCS811) Init() error {
 	// init vars
 	conf = config.GetConfig().Ccs811
 	log.Println("Open sensor CCS811")
@@ -53,7 +54,7 @@ func (c *CCS811) Init(address string) error {
 		conf.VocMetricsName: 0.0,
 	}
 
-	dev, err := i2c.Open(&i2c.Devfs{Dev: address}, conf.Address)
+	dev, err := i2c.Open(&i2c.Devfs{Dev: conf.I2cDevice}, conf.I2cAddress)
 	if err != nil {
 		return err
 	}
@@ -120,13 +121,13 @@ func (c *CCS811) getBaseline() uint16 {
 	if err := c.dev.ReadReg(baseline, val_baseline); err != nil {
 		return 0
 	}
-	log.Printf("Check baseline: %d", uint16(val_baseline[0]) << 8 | uint16(val_baseline[1]))
+	log.Printf("Check baseline: %d", uint16(val_baseline[0])<<8|uint16(val_baseline[1]))
 
-	return uint16(val_baseline[0]) << 8 | uint16(val_baseline[1])
+	return uint16(val_baseline[0])<<8 | uint16(val_baseline[1])
 }
 
 func (c *CCS811) setBaseline() uint16 {
-    val_baseline := []byte{
+	val_baseline := []byte{
 		byte((c.baseline >> 8) & 0xFF),
 		byte(c.baseline & 0xFF),
 	}
@@ -210,7 +211,7 @@ func (c *CCS811) GetMetricsDescriptions() map[string]string {
 
 func (c *CCS811) Update() map[string]float64 {
 	c.baselineCount = c.baselineCount + 1
-	if c.baselineCount % 1200 == 0 {
+	if c.baselineCount%1200 == 0 {
 		c.baselineCount = 0
 		if c.wakeupFlag {
 			c.baseline = c.getBaseline()
@@ -229,18 +230,18 @@ func (c *CCS811) Update() map[string]float64 {
 			log.Println("ccs811 read data error")
 			return c.data
 		}
-		c.data[conf.Co2MetricsName] = float64((int16(result_data[0]) << 8) | int16(result_data[1]))
-		c.data[conf.VocMetricsName] = float64((int16(result_data[2]) << 8) | int16(result_data[3]))
+		c.data[conf.Co2MetricsName] = math.Min(8192.0, math.Max(400.0, float64((int16(result_data[0])<<8)|int16(result_data[1]))))
+		c.data[conf.VocMetricsName] = math.Min(1187.0, math.Max(0.0, float64((int16(result_data[2])<<8)|int16(result_data[3]))))
 	}
 
 	return c.data
 }
 
 func (c *CCS811) GetConsoleHeader() string {
-	return " CO2[ppm] | VOC[ppb] "
+	return " eCO2[ppm] | TVOC[ppb] "
 }
 
 func (c *CCS811) GetConsoleData() string {
-	msg := fmt.Sprintf(" %8.2f | %8.2f ", c.data[conf.Co2MetricsName], c.data[conf.VocMetricsName])
+	msg := fmt.Sprintf(" %9.2f | %9.2f ", c.data[conf.Co2MetricsName], c.data[conf.VocMetricsName])
 	return msg
 }
