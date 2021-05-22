@@ -237,10 +237,10 @@ func (c *CCS811) Update() map[string]float64 {
 }
 
 func (c *CCS811) GetConsoleHeader() string {
-	return " CO2[ppm] | VOC[ppb] "
+	return " eCO2[ppm] | TVOC[ppb] "
 }
 
 func (c *CCS811) GetConsoleData() string {
-	msg := fmt.Sprintf(" %8.2f | %8.2f ", c.data[conf.Co2MetricsName], c.data[conf.VocMetricsName])
+	msg := fmt.Sprintf(" %9.2f | %9.2f ", c.data[conf.Co2MetricsName], c.data[conf.VocMetricsName])
 	return msg
 }

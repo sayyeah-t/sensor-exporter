@@ -63,8 +63,8 @@ func Init(configPath string) error {
 		Ccs811: Ccs811{
 			I2cDevice:      cfg.Section("ccs811").Key("i2c_device").MustString("/dev/i2c-1"),
 			I2cAddress:     cfg.Section("ccs811").Key("i2c_address").MustInt(0x5a),
-			Co2MetricsName: cfg.Section("ccs811").Key("metrics_name_co2").MustString("co2"),
-			VocMetricsName: cfg.Section("ccs811").Key("metrics_name_voc").MustString("voc"),
+			Co2MetricsName: cfg.Section("ccs811").Key("metrics_name_eco2").MustString("eco2"),
+			VocMetricsName: cfg.Section("ccs811").Key("metrics_name_evoc").MustString("tvoc"),
 			Baseline:       cfg.Section("ccs811").Key("baseline").MustInt(0),
 		},
 	}
